@@ -16,6 +16,15 @@ let dangerStartTime = null;
 
 let currentLevel = 0;
 let nextLevel = 0;
+let canDrop = true;
+const colors = [
+    "#FFD700",
+    "#4CAF50",
+    "#2196F3",
+    "#9C27B0",
+    "#F44336",
+    "#FF9800"
+];
 const r = Math.random();
 
 if (r < 0.8) {
@@ -94,25 +103,24 @@ function createBall(x) {
 
     if (gameOver) return;
 
+    if (!canDrop) return;
+
     const level = currentLevel;
 
     const ball = Bodies.circle(
-        x,
-        50,
-        30 + level * 5,
-        {
-            restitution: 0.2,
-            render: {
-                fillStyle: [
-                    "#FFD700",
-                    "#4CAF50",
-                    "#2196F3"
-                ][level]
+      
+    x,
+    50,
+    30 + level * 5,
+    {
+        restitution: 0.2,
+        render: {
+           fillStyle: colors[level]
         }
     }
 );
 
-ball.level = level; 
+ball.level = level;
 
 
 currentLevel = nextLevel;
@@ -121,8 +129,7 @@ Composite.add(
     engine.world,
     ball
 );
-
-   currentLevel = nextLevel;
+canDrop = false;
 
 const r = Math.random();
 
@@ -136,17 +143,6 @@ else {
     nextLevel = 2;
 }
 
-const names = [
-    "黄色",
-    "绿色",
-    "蓝色"
-];
-
-document.getElementById(
-    "nextBall"
-).innerText =
-    "下一颗：" +
-    names[nextLevel];
 }
 canvas.addEventListener("mousemove", (e) => {
 
@@ -213,6 +209,7 @@ const dangerLine = 120;
 Matter.Events.on(render, "afterRender", () => {
 
     const ctx = render.context;
+    
 
     // 红线
     ctx.beginPath();
@@ -221,13 +218,17 @@ Matter.Events.on(render, "afterRender", () => {
 
     ctx.lineTo(canvas.width, dangerLine);
 
-    ctx.strokeStyle = "red";
+    ctx.strokeStyle = "rgba(255,0,0,0.4)";
 
     ctx.lineWidth = 3;
 
     ctx.stroke();
 
+   
     // 预览球
+
+ if (canDrop) {
+
     ctx.beginPath();
 
     ctx.arc(
@@ -238,13 +239,12 @@ Matter.Events.on(render, "afterRender", () => {
         Math.PI * 2
     );
 
-    ctx.fillStyle = [
-        "#FFD700",
-        "#4CAF50",
-        "#2196F3"
-    ][currentLevel];
+    ctx.fillStyle =
+    colors[currentLevel];
 
     ctx.fill();
+
+    }
 
 });
 
@@ -295,16 +295,10 @@ Matter.Events.on(engine, "collisionStart", function(event) {
                     {
                         restitution:0.2,
                         render:{
-                            fillStyle:[
-                                "#FFD700",
-                                "#4CAF50",
-                                "#2196F3",
-                                "#9C27B0",
-                                "#F44336",
-                                "#FF9800"
-                            ][
-                                Math.min(level+1,5)
-                            ]
+                           fillStyle:
+                              colors[
+                                 Math.min(level + 1, 5)
+                              ]
                         }
                     }
                 );
@@ -331,6 +325,27 @@ setInterval(() => {
 
     const bodies =
         Composite.allBodies(engine.world);
+        if (!canDrop) {
+
+    let passedLine = true;
+
+    for (let body of bodies) {
+
+        if (
+            body.level !== undefined &&
+            body.position.y - body.circleRadius < dangerLine
+        ) {
+            passedLine = false;
+            break;
+        }
+
+    }
+
+    if (passedLine) {
+        canDrop = true;
+    }
+
+}
 
     let hasDangerBall = false;
 
@@ -338,7 +353,7 @@ setInterval(() => {
 
         if (
             body.level !== undefined &&
-            body.position.y < dangerLine &&
+            body.position.y - body.circleRadius < dangerLine &&
             body.speed < 0.2
         ) {
 
