@@ -73,38 +73,55 @@ Composite.add(
     engine.world,
     [ground, leftWall, rightWall]
 );
-// 点击生成球
-canvas.addEventListener("click", (e) => {
-   
+function createBall(x) {
 
     if (gameOver) return;
-
-    const rect =
-        canvas.getBoundingClientRect();
-
-    const x =
-        e.clientX - rect.left;
 
     const ball = Bodies.circle(
         x,
         50,
         30,
-        { 
+        {
             restitution: 0.2,
             render: {
                 fillStyle: "#FFD700"
             }
         }
     );
-    
+
     ball.level = 0;
-    
+
     Composite.add(
         engine.world,
         ball
     );
-     
-    
+}
+
+// 电脑点击
+canvas.addEventListener("click", (e) => {
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+    createBall(
+        e.clientX - rect.left
+    );
+
+});
+
+// 手机触摸
+canvas.addEventListener("touchstart", (e) => {
+
+    e.preventDefault();
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+    createBall(
+        e.touches[0].clientX -
+        rect.left
+    );
+
 });
 
 // 鼠标控制
