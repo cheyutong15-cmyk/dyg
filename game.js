@@ -14,8 +14,25 @@ let score = 0;
 let gameOver = false;
 let dangerStartTime = null;
 
+let currentLevel = 0;
+let nextLevel = 0;
+const r = Math.random();
+
+if (r < 0.8) {
+    nextLevel = 0;
+}
+else if (r < 0.95) {
+    nextLevel = 1;
+}
+else {
+    nextLevel = 2;
+}
+
+currentLevel = nextLevel;
+
 // 获取canvas
 const canvas = document.getElementById("gameCanvas");
+let mouseX = 250;
 
 // 设置实际大小
 canvas.width = canvas.clientWidth;
@@ -77,26 +94,69 @@ function createBall(x) {
 
     if (gameOver) return;
 
+    const level = currentLevel;
+
     const ball = Bodies.circle(
         x,
         50,
-        30,
+        30 + level * 5,
         {
             restitution: 0.2,
             render: {
-                fillStyle: "#FFD700"
-            }
+                fillStyle: [
+                    "#FFD700",
+                    "#4CAF50",
+                    "#2196F3"
+                ][level]
         }
-    );
+    }
+);
 
-    ball.level = 0;
+ball.level = level; 
 
-    Composite.add(
-        engine.world,
-        ball
-    );
+
+currentLevel = nextLevel;
+
+Composite.add(
+    engine.world,
+    ball
+);
+
+   currentLevel = nextLevel;
+
+const r = Math.random();
+
+if (r < 0.8) {
+    nextLevel = 0;
+}
+else if (r < 0.95) {
+    nextLevel = 1;
+}
+else {
+    nextLevel = 2;
 }
 
+const names = [
+    "黄色",
+    "绿色",
+    "蓝色"
+];
+
+document.getElementById(
+    "nextBall"
+).innerText =
+    "下一颗：" +
+    names[nextLevel];
+}
+canvas.addEventListener("mousemove", (e) => {
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+    mouseX =
+        e.clientX - rect.left;
+
+});
 // 电脑点击
 canvas.addEventListener("click", (e) => {
 
@@ -154,6 +214,7 @@ Matter.Events.on(render, "afterRender", () => {
 
     const ctx = render.context;
 
+    // 红线
     ctx.beginPath();
 
     ctx.moveTo(0, dangerLine);
@@ -165,6 +226,25 @@ Matter.Events.on(render, "afterRender", () => {
     ctx.lineWidth = 3;
 
     ctx.stroke();
+
+    // 预览球
+    ctx.beginPath();
+
+    ctx.arc(
+        mouseX,
+        50,
+        30 + currentLevel * 5,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fillStyle = [
+        "#FFD700",
+        "#4CAF50",
+        "#2196F3"
+    ][currentLevel];
+
+    ctx.fill();
 
 });
 
